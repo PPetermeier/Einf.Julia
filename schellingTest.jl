@@ -1,6 +1,6 @@
 # This is just the implementation of the Schelling Model out of the Agents.jl Doc to get a feeling for the Agents.jl pkg, 
 # also commenting in english cause its cool and to keep the file english :D
-using Agents, Plots
+using Agents, InteractiveDynamics, CairoMakie
 
 #= # struct for the SchellingAgent, best practice is using the @agent makro like below which will do the same
 mutable struct SchellingAgent <: AbstractAgent
@@ -66,7 +66,7 @@ data, _ = run!(model, agent_step!, 5; adata)
 # Visualize the data with Plots - plotabm
 #plotabm()
 groupcolor(a) = a.group == 1 ? :blue : :orange
-groupmarker(a) = a.group == 1 ? :circle : :square
+groupmarker(a) = a.group == 1 ? :circle : :rect
 
 #schellingplot = plotabm(model; ac = groupcolor, am = groupmarker, as = 4) 
 # there is a strange warning here: 
@@ -76,16 +76,40 @@ groupmarker(a) = a.group == 1 ? :circle : :square
 #gui() # shows the Plot in a standalone window
 #readline() # Using readline to pause the programm exit on enter
 
-# TODO
-#step!(model, agent_step!, 3) # advancing the model number of steps
-#plotabm(model; ac = groupcolor, am = groupmarker, as = 4)
-#gui() # show the updated plot
+#=
+# showing plot with plots.jl
+plotabm(model; ac = groupcolor, am = groupmarker, as = 4) # show the updated plot
+gui()
+readline()
+step!(model, agent_step!, 3) # advancing the model number of steps
+plotabm(model; ac = groupcolor, am = groupmarker, as = 4)
+gui()
+readline()
+=#
 
-# Animated Visualization
+#=
+# Animated Visualization with plots.jl
 anim = @animate for i in 0:10
     pl = plotabm(model; ac = groupcolor, am = groupmarker, as = 4)
     title!(pl, "step $(i)")
     step!(model, agent_step!, 1)
 end
 
-gif(anim, "schelling.gif", fps = 2)
+#gif(anim, "schelling.gif", fps = 2)
+=#
+
+# showing plot with InteractiveDynamics
+#CairoMakie.activate!() # activating the CairoMakie Backend
+#figure, _ = abm_plot(model, ac = groupcolor, am = groupmarker, as = 4) # Creating plot figure with InteractiveDynamics
+#figure # returning the figure to display the plot
+
+#readline()
+#scene = abm_play(model, agent_step!,ac = groupcolor, am = groupmarker, as = 4)
+#show(scene)
+
+abm_video(
+    "schelling.mp4", model, agent_step!;
+    ac = groupcolor, am = groupmarker, as = 10,
+    framerate = 4, frames = 20,
+    title = "Schelling's segregation model"
+)
