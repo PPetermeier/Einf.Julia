@@ -19,10 +19,10 @@ end
 #properties = Dict(:min_to_be_happy => 3) # defining the number of like-minded neighbors requiered to turn the happy boolean true 
 #schelling = ABM(SchellingAgent, space; properties) # defining  the AgentBaseModel to build the fundation so we can use the Agents.jl pkg for our Schelling Usecase, using default scheduler
 
-function initialize(; numagents = 290, griddims = (20, 20), min_to_be_happy = 3)
+function initialize(; numagents = 320, griddims = (20, 20), min_to_be_happy = 3)
     space = GridSpace(griddims, periodic = false)
     properties = Dict(:min_to_be_happy => min_to_be_happy)
-    model = ABM(SchellingAgent, space; properties = properties, scheduler = random_activation)
+    model = ABM(SchellingAgent, space; properties = properties, scheduler = Schedulers.by_property(:group))
     
     # populate the model with agents, adding equal amount of the two types of agents at random positions in the model
     for n in 1:numagents
@@ -99,17 +99,39 @@ end
 =#
 
 # showing plot with InteractiveDynamics
-#CairoMakie.activate!() # activating the CairoMakie Backend
-#figure, _ = abm_plot(model, ac = groupcolor, am = groupmarker, as = 4) # Creating plot figure with InteractiveDynamics
-#figure # returning the figure to display the plot
-
-#readline()
+CairoMakie.activate!() # activating the CairoMakie Backend
+figure, _ = abm_plot(model, ac = groupcolor, am = groupmarker, as = 10) # Creating plot figure with InteractiveDynamics
+figure # returning the figure to display the plot
+save("schelling_figure.png", figure)
+display(figure)
+println("\nPause Press Enter")
+readline()
 #scene = abm_play(model, agent_step!,ac = groupcolor, am = groupmarker, as = 4)
 #show(scene)
 
+#=
 abm_video(
     "schelling.mp4", model, agent_step!;
     ac = groupcolor, am = groupmarker, as = 10,
     framerate = 4, frames = 20,
     title = "Schelling's segregation model"
 )
+=#
+
+# launching the interactive application
+using Statistics: mean
+x(agent) = agent.pos[1]
+parange = Dict(:min_to_be_happy => 0:8)
+adata = [(:mood, sum), (x, mean)] # 
+alabels = ["happy", "avg. x"]# shorter labels
+
+model = initialize(; numagents = 300)# fresh model noone happy
+scene, adf, modeldf =
+abm_data_exploration(model, agent_step!, dummystep, parange;
+                ac = groupcolor, am = groupmarker, as = 1,
+                adata = adata, alabels = alabels)
+println("\nPause Press Enter")
+readline()
+println(typeof(scene))
+println(typeof(adf))
+println(typeof(modeldf))
