@@ -1,20 +1,21 @@
 using Agents
 
-@agent Mover GraphAgent begin
-    isTrain::Bool
-end
-
 mutable struct Mover <: AbstractAgent
     id::Int
-    pos::Tuple{Int,Int,Float64}
+    pos::Tuple{Int,Float64} # position in the model with progress to next stop in percent
     route::Vector{Int}
-    destination::Tuple{int,Int,Float64}
+    destination::Int
     isTrain::Bool
     capacity::Int
 end
 
+# Definition of functions to create specific agents (trains and passengers)
+Passenger(id, pos, route, destination) = Mover(id, pos, route, destination, false, 0)
+Train(id, pos, route, destination, capacity) = Mover(id, pos, route, destination, true, capacity)
+
 function initialize(; numagents = 12)
-    space = GraphSpace()
+    # parsing input textfile -> Graphspace
+    #space = GraphSpace()
 
 end
 
