@@ -19,11 +19,9 @@ Train(id, pos, destination, capacity, speed) = Mover(id, pos, destination, true,
 function initialize()
     # preparing additional properties
     properties = Dict(
-        #=
-        :bahnhoefe => Dict()
-        :Strecken => Dict()
-        # ... usw Daten werden in buildGraphspaceABM eingelesen
-        =#
+        :stations => Dict{String, Integer}(), # id:String => capacity:Int
+        :tracks => Dict{String, Track}() # id:String => track:Track definition in spaceBuilder.jl
+        # Daten werden in buildGraphspaceABM eingelesen
     )
     # parsing input textfile -> Graphspace with buildGraphspace()
     model = buildGraphspaceABM(Mover, properties)

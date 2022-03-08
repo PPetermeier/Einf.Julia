@@ -8,4 +8,6 @@ include("..\\TrainTimetableOptimization\\trainTimetable_ABM.jl")
 
 # Now we write the test Project code
 #read_txt("InfomaticCup\\test\\simple\\input.txt")
-initialize()
+m1 = initialize()
+println(m1.stations)
+println(m1.tracks)
