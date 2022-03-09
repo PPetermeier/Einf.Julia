@@ -6,3 +6,11 @@
 include("trainTimetable_ABM.jl")
 
 # Now we write the main Project code
+m1 = initialize("InfomaticCup\\test\\simple\\input.txt")
+optimizeTrains(m1) # optimizing the Trains per Station
+
+for timeunit in 1:3
+    for agent in allagents(m1)
+        agent_step!(agent, m1)
+    end
+end
