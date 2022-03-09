@@ -8,6 +8,9 @@ include("..\\TrainTimetableOptimization\\trainTimetable_ABM.jl")
 
 # Now we write the test Project code
 #read_txt("InfomaticCup\\test\\simple\\input.txt")
-m1 = initialize()
+m1 = initialize("InfomaticCup\\test\\simple\\input.txt")
 println(m1.stations)
 println(m1.tracks)
+println(string("number of agents: ",nagents(m1)))
+println(m1.agents)
+ 
