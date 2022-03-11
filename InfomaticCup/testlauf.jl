@@ -12,13 +12,13 @@ println(m1.tracks)
 println(string("number of agents: ",nagents(m1)))
 println(m1.agents)
 optimizeTrains(m1)
-println(m1.optimizedTrains)
 
 for timeunit in 1:3
     for agent in allagents(m1)
         agent_step!(agent, m1)
     end
     println()
-    println(m1.agents)
-    println(m1.passengers)
+    println(string("modelagents: ",m1.agents))
+    println(string("passengerlist: ",keys(m1.passengers)))
+    println(string("passengerlist: ",values(m1.passengers)))
 end
