@@ -6,7 +6,7 @@ lines = DataFrame(ID = Int64[], Start = Int64[], End = Int64[], Length = Float32
 trains = DataFrame(ID = Int64[], StartingStation = Any[], Speed = Float32[], Capacity = Int64[])
 passengers = DataFrame(ID = Int64[], StartingStation = Int64[], Destination = Int64[], Groupsize = Int64[], Targettime = Int64[])
 
-open("C:\\Users\\Philipp\\Desktop\\Einf.Julia\\TrainTimetableOptimization\\input.txt") do file 
+open("C:\\Users\\Philipp\\Desktop\\Einf.Julia\\InfomaticCup\\test\\simple\\input.txt") do file 
     phase=0
     for ln in eachline(file)
         #println("$(ln)")
@@ -49,7 +49,7 @@ open("C:\\Users\\Philipp\\Desktop\\Einf.Julia\\TrainTimetableOptimization\\input
             content = replace(content, 'S'=>"")
             content = split(content)
             content = parse.(Int, content)
-            push!(lines,content)
+            push!(passengers,content)
             #push!(passengers,parse.(Int, split(strip(ln,['P', 'T', 'L','S']))))
             continue
         end 
@@ -59,6 +59,12 @@ end
 
 
 println(stations)
-println(lines, trains, passengers)
+println("|---------------------------------------------------------|")
+println(lines)
+println("|---------------------------------------------------------|")
+println(trains)
+println("|---------------------------------------------------------|")
+println(passengers)
+
 
 #TODO: Prints entfernen, Datenpipelines in einfache Funktionscalls umwandeln von Einzelschritten, relative Pfadangabe ans Laufen bekommen
