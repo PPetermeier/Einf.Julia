@@ -30,11 +30,13 @@ function buildGraphspaceABM(modelAgent, properties, file)
     model.tracks[string("T",3)] = newtrack
 
     # add agents:
+    Passenger(id, pos, destination, groupsize, targettime) = Mover(id, pos, destination, false, 0, 0, 0, 0, groupsize, targettime) # Passenger IDs start on 5001 to avoid conflicts with train Agent Ids
+    Train(id, pos, destination, capacity, speed) = Mover(id, pos, destination, true, capacity, 0, speed, 0, 0, 0)# max id is 5000
     # Passenger(id, pos, destination, groupsize, targettime) = Mover(id+5000, pos, destination, false, 0, Int[], 0, 0, 0, groupsize, targettime) # Passenger IDs start on 5001 to avoid conflicts with train Agent Ids
-    # Train(id, pos, destination, capacity, speed) = Mover(id, pos, destination, true, capacity, 0, Int[], speed, 0, 0, 0)# max id is 5000
-    add_agent!(Train(1, 1, 2, 2, 1.0), model)
-    add_agent!(Passenger(1, 1, 2, 2, 3.6), model)
-    add_agent!(Passenger(2, 1, 2, 1, 3.0), model)
+    # Train(id, pos, destination, capacity, speed) = Mover(id, pos, destination, true, capacity, 0, speed, 0, 0, 0)# max id is 5000
+    add_agent!(Train(1, 1, 2, 3, 1.0), 1, model)
+    add_agent!(Passenger(2, 1, 2, 2, 3.6), 1, model)
+    add_agent!(Passenger(3, 1, 2, 1, 3.0), 1, model)
 
     return model
 end
