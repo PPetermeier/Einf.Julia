@@ -38,13 +38,7 @@ function parseinput()
             end 
         end
     end
-end
     return(stations, lines, trains, passengers)
-    #--------------------------------------------------------------------#   
-    println(stations)
-    println("|---------------------------------------------------------|")
-    println(lines)
-    println("|---------------------------------------------------------|")
-    println(trains)
-    println("|---------------------------------------------------------|")
-    println(passengers)
+end
+#------------------Funktionscall für die main(), um die Dataframes eingelesen zu erhalten: #
+#stations, lines, trains, passengers = parseinput()
