@@ -1,4 +1,5 @@
-using DataFrames #pkg. add Datafrmae
+# Benötigt Julia 1.7!
+using DataFrames
 function parseinput()
     #----------------- Die Dataframes initialisieren um dann einfach reinschreiben zu können.       #
     #----------------- Besonderheit bei Trains: Startation muss Any und genutzte Methode tryparse,  #
