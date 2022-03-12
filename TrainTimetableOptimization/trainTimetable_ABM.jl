@@ -1,4 +1,4 @@
-using Agents, DataFrames
+using Agents, DataFrames, MetaGraphs, LightGraphs
 include("spaceBuilder.jl")
 
 mutable struct Mover <: AbstractAgent
@@ -14,12 +14,14 @@ mutable struct Mover <: AbstractAgent
     targettime::Float64 # the time the passenger wants to reach its destination
 end
 
-struct Track
-    trackstart::String # start station/node
-    trackend::String # end station/node
+mutable struct Track
+    trackstart::Int # start station/node
+    trackend::Int # end station/node
     capacity::Int # max number of trains
     length::Float64
 end
+
+# TODO implement struct Station and MetaGraphs as alternative to LightGraphs so we can use edge properties for length or for stations(nodes) capacity
 
 # Definition of functions to create specific agents (trains and passengers)
 Passenger(id, pos, destination, groupsize, targettime) = Mover(id, pos, destination, false, 0, 0, 0, 0, groupsize, targettime) # Passenger IDs start on 5001 to avoid conflicts with train Agent Ids
@@ -28,8 +30,8 @@ Train(id, pos, destination, capacity, speed) = Mover(id, pos, destination, true,
 function initialize(file::String)
     # preparing additional properties
     properties = Dict(
-        :stations => Dict{String, Integer}(), # id::String => capacity::Int
-        :tracks => Dict{String, Track}(), # id::String => track::Track definition in spaceBuilder.jl
+        :stations => Dict{Integer, Integer}(), # Stationid::Int => track::Station
+        :tracks => Dict{Integer, Track}(), # Trackid::String => track::Track 
         :passengers => Dict{Integer, Vector{Int}}(), # TrainID::Int PassngerID::Int Array of PassengerIDs per train
         :lines => DataFrame()
         # Daten werden in buildGraphspaceABM eingelesen
@@ -42,14 +44,16 @@ end
 function agent_step!(agent::Mover, model)
     # Moving each Agent One Step per One Time unit
     # Phase 1: Passengers try to board trains to their destination when train is in there station which has space for their group
-    # Phase 2: Trains travel their speed on their optimized train track route check if track has capacity for them and go on
     if ! agent.isTrain && agent.onBoard < 1
         tryBoard(agent, model)
+    else
+        moveTrain(agent, model)
     end
+    # Phase 2: Trains travel their speed on their optimized train track route check if track has capacity for them and go on
 end
 
 function tryBoard(passenger::Mover, model)::Bool # passenger macht liste von zeügen wählt random einen aus
-    for nearbyagents in ids_in_position(passenger, model)
+    for nearbyagents in nearby_ids(passenger, model, 0) # iterate over agents at same position(r=0) excluding passenger
         agent = model[nearbyagents]
         print(string("Passenger: ",passenger))
         println(string(" found Agent at the platform: ",agent))
@@ -69,7 +73,18 @@ function tryBoard(passenger::Mover, model)::Bool # passenger macht liste von ze�
 end
 
 function moveTrain(train::Mover, model)
-
+    if train.trackprogress == 0 # check if train is still parked in a station ( if trackprogress > 0 == false)
+        stationempty = true
+        for nearbyagents in nearby_ids(train, model, 0) # iterate over agents at same position(r=0) excluding passenger
+            if ! model[nearbyagents].isTrain # check if all agents remaining in station are trains if not wait for passengers to board
+                stationempty = false
+                break
+            end
+        end
+        if stationempty && in(train.destination, nearby_positions(train.pos, model, 1)) # if all passenger boarded and the next stop is reachable
+            #if model.trac
+        end
+    end
 end
 
 function optimizeTrains(model)

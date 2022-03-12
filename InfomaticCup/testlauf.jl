@@ -3,13 +3,13 @@
 # 
 =#
 # First we include all the needed functions of used files
-include("..\\TrainTimetableOptimization\\trainTimetable_ABM.jl")
+include("..//TrainTimetableOptimization//trainTimetable_ABM.jl")
 
 # Now we write the test Project code
 function main()
     println()
     println("=========================================")
-    m1 = initialize("InfomaticCup\\test\\simple\\input.txt")
+    m1 = initialize("InfomaticCup//test//simple//input.txt")
     println(m1.stations)
     println(m1.tracks)
     println(string("number of agents: ",nagents(m1)))
