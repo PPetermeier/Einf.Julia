@@ -14,9 +14,9 @@ function cost(potentialstations)
     _, data =run!(
         model,
         agent_step!,
-        100;
+        40;
         mdata = [efficiency],
-        when_model = [100],
+        when_model = [40],
         replicates = 10,
     )
 
@@ -24,21 +24,20 @@ function cost(potentialstations)
 end
 
 flexibeltrains01 = potentialstations(8)
-trainrange = (first(flexibeltrains01), last(flexibeltrains01))
 result = bboptimize(
     cost,
     SearchRange = [
-        trainrange,
-        trainrange,
-        trainrange,
-        trainrange,
-        trainrange,
-        trainrange,
-        trainrange,
-        trainrange,
+        flexibeltrains01,
+        flexibeltrains01,
+        flexibeltrains01,
+        flexibeltrains01,
+        flexibeltrains01,
+        flexibeltrains01,
+        flexibeltrains01,
+        flexibeltrains01,
     ],
     NumDimensions = 8,
     MaxTime = 40
 )
-best_fitness(result)
-best_candidate(result)
+println(best_fitness(result))
+println(best_candidate(result))

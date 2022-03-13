@@ -12,7 +12,7 @@ mutable struct Mover <: AbstractAgent
     capacity::Int # capacity of passengers in the train
     trackprogress::Float64 # 0 if in station 
     speed::Float64 # speed of the train, how many track length in one time unit can be traversed
-    passengerlist::Vector{Int} # passengerlist of the train with passengerIDs
+    passengerlist::Array # passengerlist of the train with passengerIDs
 
     # passenger specific variables
     groupsize::Int # size of the passenger group
@@ -72,17 +72,34 @@ function nextDestination!(train::Mover, model) #TODO
     #println(first(model.lines[in.(model.lines.Start, Ref(agent.pos)), :].End))
     #model.lines[rand(1:end)]
     #agent.destination = first(nearby_positions(agent.pos, model, 1)) # placeholder TODO better way picking next stop based on lines
-    targetlist = DataFrame(line = Int, weigth = Int)
-    preferredline = []
+    neighborlist = DataFrame(Route = Any, weigth = Int)
+    println(neighborlist)
+    println(train)
+    println(nearby_positions(train.pos, model, 1))
+    for agent in nearby_agents(train.pos, model, 0)
+        if !agent.isTrain
+            push!(train.passengerlist, agent)  
+        end
+    end
     for passenger in train.passengerlist
-        push!(preferredline, passenger.destination) # first(dijstra(model, passenger.pos, passenger.destination)
+        preference = a_star(model.space.graph, passenger.pos, passenger.destination )
+        println(preference)
+        if preference in(neighborlist[1])
+            neighborlist[2] += passenger.Groupsize
+        else 
+            push!(neighborlist, (preference, passenger.Groupsize)       
+        end
+    sort!(neighborlist, 2, rev=true)
+    nextdestinationID = neighborlist[1, 1]
+    return nextdestinationID
+        #push!(preferredline, passenger.destination) # first(dijstra(model, passenger.pos, passenger.destination)
     end
-    if contains(targelist, preferredline)
-        targetlist.lineweigth+= passenger.groupsize
-    else
-        push!(targetlist, preferredline, passenger.groupsize)
+    #if contains(targelist, preferredline)
+    #    targetlist.lineweigth+= passenger.groupsize
+    #else
+    #    push!(targetlist, preferredline, passenger.groupsize)
             #linetarget =push!(targetlist) (first(dijstra(model, passenger.pos, Passenger.destination))
-    end
+    #end
     # alles agenten im zug kürzester weg zum wichtigsten ziel kürzester weg von a nach b funktion * größe gruppe 
 end
 
