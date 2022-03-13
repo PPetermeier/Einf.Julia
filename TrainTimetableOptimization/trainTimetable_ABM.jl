@@ -98,15 +98,33 @@ function nextDestination!(train::Mover, model)
     # alles agenten im zug kürzester weg zum wichtigsten ziel kürzester weg von a nach b funktion * größe gruppe 
 end
 
-function hasCapacity()
-    return true
+function enter!(train::Mover, model, what) # checks if line or station has capacity enter if true model needs to be model.lines or model.stations
+    if what == :line # infrastructure is line
+        line = model.lines[ in([train.pos]).(model.lines.Start), :][in([train.destination]).(model.lines.End), :]
+        laststation = model.stations[ in([train.pos]).(model.stations.ID), :]
+        if line[1, :Capacity] >= 1
+            model.lines[line[1, :ID], :Capacity] -= 1
+            model.stations[laststation[1, :ID], :Capacity] += 1
+            return true
+        end
+    else # infrastructure is station what == :station
+        station = model.stations[ in([train.pos]).(model.stations.ID), :]
+        lastline = model.lines[ in([train.pos]).(model.lines.Start), :][in([train.destination]).(model.lines.End), :]
+        if station[1, :Capacity] >= 1
+            model.stations[station[1, :ID], :Capacity] -= 1
+            model.lines[lastline[1, :ID], :Capacity] += 1
+            return true
+        end
+    end
+    return false
 end
 
 function moveTrain!(train::Mover, model)
     if train.trackprogress == 0 # check if train is still parked in a station ( if trackprogress > 0 == false)
         #nextDestination!(train, model)
-        if in(train.destination, nearby_positions(train.pos, model, 1)) && hasCapacity() # if the next stop is reachable and line has capacity
-            #move_agent!(train, train.destination,  model)# ToDo check if track or station have the capacity
+        train.destination = 3
+        if in(train.destination, nearby_positions(train.pos, model, 1)) && enter!(train, model, :line) # if the next stop is reachable and line has capacity
+            move_agent!(train, train.destination,  model)
         end
     else
         #weiterfahren
