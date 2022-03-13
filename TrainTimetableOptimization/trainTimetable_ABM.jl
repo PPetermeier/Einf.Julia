@@ -2,41 +2,37 @@ using Agents, DataFrames, MetaGraphs, LightGraphs
 include("spaceBuilder.jl")
 
 mutable struct Mover <: AbstractAgent
+    # shared agent variables
     id::Int
     pos::Int # position in the model
-    destination::Int
+    destination::Int #  final destination of the passenger or next destionation of train
+
+    # train specific variables
     isTrain::Bool
     capacity::Int # capacity of passengers in the train
     trackprogress::Float64 # 0 if in station 
     speed::Float64 # speed of the train, how many track length in one time unit can be traversed
-    onBoard::Int # train id if the passenger boarded one
+    passengerlist::Vector{Int} # passengerlist of the train with passengerIDs
+
+    # passenger specific variables
     groupsize::Int # size of the passenger group
     targettime::Int # the time the passenger wants to reach its destination
+    arrivialtime::Int # on which Timeunit the passenger reached its destination
+
+    # round specific shared variables
+    logbook::Vector{String} # holds output specific Strings to later save their actions as text output
+    # logbook format for trains string(zeit:int start/depart stationid/lineid) format for passenger string(zeit:int board/detrain zug/" ")
+    hasmoved::Bool # if the train allready moved this timeunit or if passenger has boarded
 end
 
-# mutable struct Station
-#     capacity::Int # max number of trains
-#     tracks::Dict{Int, Track} # Tracks starting in theis station per endstationId
-# end
-
-# mutable struct Track
-#     trackstart::Int # start station/node
-#     trackend::Int # end station/node
-#     capacity::Int # max number of trains
-#     length::Float64
-# end
-
-# TODO implement struct Station and MetaGraphs as alternative to LightGraphs so we can use edge properties for length or for stations(nodes) capacity
-
 # Definition of functions to create specific agents (trains and passengers)
-Passenger(id, pos, destination, groupsize, targettime) = Mover(id, pos, destination, false, 0, 0, 0, 0, groupsize, targettime) # Passenger IDs start on 5001 to avoid conflicts with train Agent Ids
-Train(id, pos, destination, capacity, speed) = Mover(id, pos, destination, true, capacity, 0, speed, 0, 0, 0)# max id is 5000
+Passenger(id, pos, destination, groupsize, targettime) = Mover(id, pos, destination, false, 0, 0.0, 0.0, [], groupsize, targettime, 0, [], false)
+Train(id, pos, capacity, speed) = Mover(id, pos, pos, true, capacity, 0.0, speed, [], 0, 0, 0, [], false)
 
 function initialize(file::String)
     # preparing additional properties
     properties = Dict(
-        #:stations => Dataframe(), # Stationid::Int => station::Station
-        #:passengers => Dict{Integer, Vector{Int}}(), # TrainID::Int PassngerID::Int Array of PassengerIDs per train
+        #:stations => Dataframe(),
         #:lines => DataFrame()
         # Daten werden in buildGraphspaceABM eingelesen
     )
@@ -49,22 +45,22 @@ function agent_step!(agent::Mover, model)
     # Moving each Agent One Step per One Time unit
     # Phase 1: Passengers try to board trains to their destination when train is in there station which has space for their group
     if agent.isTrain
-        moveTrain(agent, model)
+        moveTrain!(agent, model)
     else
-        if agent.onBoard < 1
-            tryBoard(agent, model)
+        if ! agent.hasmoved
+            agent.hasmoved = tryBoard!(agent, model)
         end
     end
     # Phase 2: Trains travel their speed on their optimized train track route check if track has capacity for them and go on
 end
 
-function tryBoard(passenger::Mover, model)::Bool # passenger macht liste von zeügen wählt random einen aus
+function tryBoard!(passenger::Mover, model)::Bool # passenger macht liste von zeügen wählt random einen aus
     for nearbyagents in nearby_ids(passenger, model, 0) # iterate over agents at same position(r=0) excluding passenger
         agent = model[nearbyagents]
         print(string("Passenger: ",passenger))
         println(string(" found Agent at the platform: ",agent))
         if agent.isTrain && agent.capacity >= passenger.groupsize
-            passenger.onBoard = agent.id # passenger saves on which train it is
+            push!(agent.passengerlist, passenger.id) # train saves passenger on passengerlist
             agent.capacity = agent.capacity - passenger.groupsize # capacity of train agent is updated
             return true
         end
@@ -72,30 +68,40 @@ function tryBoard(passenger::Mover, model)::Bool # passenger macht liste von ze�
     return false
 end
 
-function nextDestination(agent::Mover, model)
+function nextDestination!(train::Mover, model) #TODO
     #println(first(model.lines[in.(model.lines.Start, Ref(agent.pos)), :].End))
+    #model.lines[rand(1:end)]
     #agent.destination = first(nearby_positions(agent.pos, model, 1)) # placeholder TODO better way picking next stop based on lines
+    targetlist = DataFrame(line = Int, weigth = Int)
+    preferredline = []
+    for passenger in train.passengerlist
+        push!(preferredline, passenger.destination) # first(dijstra(model, passenger.pos, passenger.destination)
+    end
+    if contains(targelist, preferredline)
+        targetlist.lineweigth+= passenger.groupsize
+    else
+        push!(targetlist, preferredline, passenger.groupsize)
+            #linetarget =push!(targetlist) (first(dijstra(model, passenger.pos, Passenger.destination))
+    end
+    # alles agenten im zug kürzester weg zum wichtigsten ziel kürzester weg von a nach b funktion * größe gruppe 
 end
 
-function moveTrain(train::Mover, model)
+function hasCapacity()
+    return true
+end
+
+function moveTrain!(train::Mover, model)
     if train.trackprogress == 0 # check if train is still parked in a station ( if trackprogress > 0 == false)
-        stationempty = true
-        for nearbyagents in nearby_ids(train, model, 0) # iterate over agents at same position(r=0) excluding passenger
-            if ! model[nearbyagents].isTrain # check if all agents remaining in station are trains if not wait for passengers to board
-                stationempty = false
-                break
-            end
+        #nextDestination!(train, model)
+        if in(train.destination, nearby_positions(train.pos, model, 1)) && hasCapacity() # if the next stop is reachable and line has capacity
+            #move_agent!(train, train.destination,  model)# ToDo check if track or station have the capacity
         end
-        if stationempty
-            nextDestination(train, model)
-            if in(train.destination, nearby_positions(train.pos, model, 1)) # if all passenger boarded and the next stop is reachable
-                #move_agent!(train, train.destination,  model)# ToDo check if track or station have the capacity
-            end
-        end
+    else
+        #weiterfahren
     end
 end
 
-function optimizeTrains(model)
+function optimizeTrains!(model)
     # iterate over all trains, optimize their Timetable and store them in optimizedTrains property of the model TODO
     
 end

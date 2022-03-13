@@ -1,4 +1,4 @@
-include("parser_test.jl")
+include("Inputparser.jl")
 #= obsolete text read function \o/
 function read_txt(filename)
     file = open(filename,"r")
@@ -36,12 +36,13 @@ function buildGraphspaceABM(modelAgent, properties, file)
     # trains = DataFrame(ID = Int64[], StartingStation = Any[], Speed = Float32[], Capacity = Int64[])
     # passengers = DataFrame(ID = Int64[], StartingStation = Int64[], Destination = Int64[], Groupsize = Int64[], Targettime = Int64[])
     
-    # Passenger(id, pos, destination, groupsize, targettime) = Mover(id+5000, pos, destination, false, 0, Int[], 0, 0, 0, groupsize, targettime) # Passenger IDs start on 5001 to avoid conflicts with train Agent Ids
-    # Train(id, pos, destination, capacity, speed) = Mover(id, pos, destination, true, capacity, 0, speed, 0, 0, 0)# max id is 5000
+    # Passenger(id, pos, destination, groupsize, targettime) = Mover(id, pos, destination, false, 0, 0.0, 0.0, [], false, groupsize, targettime, 0, [])
+    # Train(id, pos, capacity, speed) = Mover(id, pos, pos, true, capacity, 0.0, speed, [], false, 0, 0, 0, [])
 
     for r in eachrow( passengers )
         counttrains = nrow(trains) # count trains to eval passengerId
         add_agent_pos!( Passenger(r.ID+counttrains, r.StartingStation, r.Destination, r.Groupsize, r.Targettime), model )
+        # Passenger IDs start on id+number of trains to avoid conflicts with train Agent Ids
     end
     for r in eachrow( trains )
         if ! isnothing( r.StartingStation ) # set to random Station if no starting station is set
@@ -49,7 +50,7 @@ function buildGraphspaceABM(modelAgent, properties, file)
         else
             start = rand( 1:nrow(stations) ) # TODO pick random station with passengers
         end
-        add_agent_pos!( Train(r.ID, start, 0, r.Capacity, r.Speed), model ) # TODO check if station has capacity
+        add_agent_pos!( Train(r.ID, start, r.Capacity, r.Speed), model ) # TODO check if station has capacity
     end
 
     # some hardcoded test data =)

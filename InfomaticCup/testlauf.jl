@@ -15,7 +15,7 @@ function main()
     println(string("number of agents: ",nagents(m1)))
     println(m1.agents)
     println()
-    optimizeTrains(m1)
+    optimizeTrains!(m1)
 
     for timeunit in 1:3
         for agent in allagents(m1)
