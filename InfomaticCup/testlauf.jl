@@ -6,9 +6,6 @@
 include("..//TrainTimetableOptimization//trainTimetable_ABM.jl")
 
 # Now we write the test Project code
-test1()
-test2()
-
 function test1()
     println()
     println("=========================================")
@@ -40,3 +37,6 @@ function test2()
     println(m1.stations)
     println(m1.lines)
 end
+
+test1()
+test2()
