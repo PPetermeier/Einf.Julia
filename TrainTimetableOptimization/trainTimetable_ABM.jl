@@ -71,25 +71,49 @@ end
 function nextDestination!(train::Mover, model)
     if !train.isTrain
         neighborlist = DataFrame(NextStation = Int[], weigth = Int[])
+        foreveralone = true
 
         for agent in nearby_agents(train.pos, model, 0) # Placeholderfunktion, die Passenger sollten sich selbst bereits beim Boarden eingecheckt haben
-                push!(train.passengerlist, agent)  
+            push!(train.passengerlist, agent)  
+        end
+
+        for agent in nearby_agents(train.pos, model, 0)
+            if agent.isTrain == false
+                forveralone = false 
+                break
+            end
+        end
+
+        if nearby_agents(train.pos, model, 0)==0 || !foreveralone
+            for agent in nearby_agents(train.pos, model, 1)
+                if !agent.isTrain
+                    if !in(agent.pos, neighborlist[:, 1]) 
+                        push!(neighborlist, agent.pos, agent.groupsize)
+                    else neighborlist[agent.pos, 2] += agent.groupsize
+                    end
+                end
+            end
         end
 
         for passenger in train.passengerlist
             preference = a_star(model.space.graph, passenger.pos, passenger.destination )
-            preference = preference[1].dst
+            if length(preference)>0
+                preference = first(preference)
+                preference = preference.dst
 
-            if in(preference, neighborlist[:, 2])
-                neighborlist[2] += passenger.Groupsize
-            else 
-                push!(neighborlist, (preference, passenger.groupsize))       
+                if in(preference, neighborlist[:, 1])
+                    neighborlist[2] += passenger.Groupsize
+                else 
+                    push!(neighborlist, (preference, passenger.groupsize))       
+                end
             end
-
-        sort!(neighborlist, 2, rev=true)
-        nextdestinationID = neighborlist[1, 1]
-        return nextdestinationID
         end
+        if isempty(neighborlist)
+            return rand(nearby_positions)
+        end
+    sort!(neighborlist, 2, rev=true)
+    nextdestinationID = neighborlist[1, 1]
+    return nextdestinationID
     end
 end
 
