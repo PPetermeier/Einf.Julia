@@ -119,14 +119,34 @@ function moveTrain!(train::Mover, model)
         #nextDestination!(train, model)
         train.destination = 3
         if in(train.destination, nearby_positions(train.pos, model, 1)) && enter!(train, model, :line) # if the next stop is reachable and line has capacity
-            move_agent!(train, train.destination,  model)
+            line = model.lines[ in([train.pos]).(model.lines.Start), :][in([train.destination]).(model.lines.End), :] # get active line of the train
+            if train.speed >= model.lines[line[1, :ID], :Length] # if train is fast enough to reach the station in the same timeunit
+                println()
+                println("=================================[   ]=[   ]=[   ]=[   ]==")
+                println(string(string(string("train ",train.id), " reaches station: "), train.destination))
+                move_agent!(train, train.destination,  model)
+                println("============================")
+            else
+                println()
+                println(string(string("train ", train.id)," moves a bit from: ", train.trackprogress))
+                train.trackprogress += train.speed
+                println(train.trackprogress)
+                println()
+            end
         end
     else
-        #weiterfahren
+        # line = model.lines[ in([train.pos]).(model.lines.Start), :][in([train.destination]).(model.lines.End), :] # get active line of the train
+        # if train.trackprogress + train.speed >= model.lines[line[1, :ID], :Length] # if train is fast enough to reach the station in the same timeunit
+        #     println("==============================================[   ]=[   ]==")
+        #     println(string(string(string("train ",train.id), " reaches station: "), train.destination))
+        #     move_agent!(train, train.destination,  model)
+        #     println("============================")
+        # else
+        #     println()
+        #     println(string(string("train ", train.id)," moves a bit from: ", train.trackprogress))
+        #     train.trackprogress += train.speed
+        #     println(string("to: ", train.trackprogress))
+        #     println()
+        # end
     end
-end
-
-function optimizeTrains!(model)
-    # iterate over all trains, optimize their Timetable and store them in optimizedTrains property of the model TODO
-    
 end
