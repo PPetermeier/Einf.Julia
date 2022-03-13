@@ -18,6 +18,7 @@ mutable struct Mover <: AbstractAgent
     groupsize::Int # size of the passenger group
     targettime::Int # the timeunit the passenger is willing to spend to reach its destination
     arrivialtime::Int # on which timeunit the passenger reached its destination
+    train::Int
 
     # round specific shared variables
     logbook::Array # holds output specific Strings to later save their actions as text output
@@ -67,14 +68,31 @@ end
 function agent_step!(agent::Mover, model)
     # Moving each Agent One Step per One Time unit
     # Phase 1: Passengers try to board trains to their destination when train is in there station which has space for their group
-    if agent.isTrain && ! agent.hasmoved
+    if agent.isTrain
         moveTrain!(agent, model)
     else
         if ! agent.hasmoved
-            agent.hasmoved = tryBoard!(agent, model)
+            if ! agent.ontrain
+                agent.hasmoved = tryBoard!(agent, model)
+            else
+                train =model.agent.[agent.train]
+                if train.trackprogress <= 0
+                    detrain(agent,train, model)
+                elseif 
+                    passenger.hasmoved = true
+                end
+            end     
         end
+
     end
     # Phase 2: Trains travel their speed on their optimized train track route check if track has capacity for them and go on
+end
+
+function detrain (passenger,train, model)
+    train.capacity -= passenger.groupsize
+    passenger.pos = train.pos
+    passenger.train = NaN
+    passenger.hasmoved = true
 end
 
 function tryBoard!(passenger::Mover, model)::Bool # passenger macht liste von zeügen wählt random einen aus
