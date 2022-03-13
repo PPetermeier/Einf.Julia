@@ -37,7 +37,7 @@ function initialize(file::String, debug::Bool)
     properties = Dict(
         :stations => DataFrame(),
         :lines => DataFrame(),
-        :debug => true
+        :debug => debug
         # Daten werden in buildGraphspaceABM eingelesen
     )
     model = buildGraphspaceABM(Mover, properties, file)
