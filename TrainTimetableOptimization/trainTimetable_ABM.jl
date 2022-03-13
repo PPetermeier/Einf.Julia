@@ -69,33 +69,28 @@ function tryBoard!(passenger::Mover, model)::Bool # passenger macht liste von ze
 end
 
 function nextDestination!(train::Mover, model)
-    neighborlist = DataFrame(Route = Any, weigth = Int)
-    for agent in nearby_agents(train.pos, model, 0) # Placeholderfunktion, die Passenger sollten sich selbst bereits beim Boarden eingecheckt haben
-        if !agent.isTrain
-            push!(train.passengerlist, agent)  
+    if !train.isTrain
+        neighborlist = DataFrame(NextStation = Int[], weigth = Int[])
+
+        for agent in nearby_agents(train.pos, model, 0) # Placeholderfunktion, die Passenger sollten sich selbst bereits beim Boarden eingecheckt haben
+                push!(train.passengerlist, agent)  
+        end
+
+        for passenger in train.passengerlist
+            preference = a_star(model.space.graph, passenger.pos, passenger.destination )
+            preference = preference[1].dst
+
+            if in(preference, neighborlist[:, 2])
+                neighborlist[2] += passenger.Groupsize
+            else 
+                push!(neighborlist, (preference, passenger.groupsize))       
+            end
+
+        sort!(neighborlist, 2, rev=true)
+        nextdestinationID = neighborlist[1, 1]
+        return nextdestinationID
         end
     end
-    for passenger in train.passengerlist
-        preference = a_star(model.space.graph, passenger.pos, passenger.destination )
-        println(preference[1])
-        preference = preference[1].dst
-        println(preference)
-        if preference in(neighborlist[!, 1])
-            neighborlist[2] += passenger.Groupsize
-        else 
-            push!(neighborlist, (preference, passenger.groupsize))       
-        end
-    sort!(neighborlist, 2, rev=true)
-    nextdestinationID = neighborlist[1, 1]
-    return nextdestinationID
-    end
-    #if contains(targelist, preferredline)
-    #    targetlist.lineweigth+= passenger.groupsize
-    #else
-    #    push!(targetlist, preferredline, passenger.groupsize)
-            #linetarget =push!(targetlist) (first(dijstra(model, passenger.pos, Passenger.destination))
-    #end
-    # alles agenten im zug kürzester weg zum wichtigsten ziel kürzester weg von a nach b funktion * größe gruppe 
 end
 
 function hasCapacity()

@@ -12,7 +12,7 @@ function main()
     m1 = initialize("InfomaticCup//test//simple//input.txt")
     
     for agent in allagents(m1)
-        nextDestination!(agent, m1)
+        println(nextDestination!(agent, m1))
         end
     end
 #     println(m1.stations)
