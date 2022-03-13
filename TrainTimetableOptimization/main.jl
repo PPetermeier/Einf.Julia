@@ -8,9 +8,9 @@ include("trainTimetable_ABM.jl")
 # Now we write the main Project code
 function main()
     
-    m1 = initialize("InfomaticCup//test//simple//input.txt")
+    m1 = initialize("InfomaticCup//test//simple//input.txt", false)
     step!(m1, 5)
-    
+
 end
 
 main()

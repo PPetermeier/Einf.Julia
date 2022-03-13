@@ -5,19 +5,19 @@ mutable struct Mover <: AbstractAgent
     # shared agent variables
     id::Int
     pos::Int # position in the model
-    destination::Int #  final destination of the passenger or next destionation of train
+    destination::Int # final destination of the passenger or next destionation of train
 
     # train specific variables
     isTrain::Bool
     capacity::Int # capacity of passengers in the train
-    trackprogress::Float64 # 0 if in station 
-    speed::Float64 # speed of the train, how many track length in one time unit can be traversed
-    passengerlist::Array # passengerlist of the train with passengerIDs
+    trackprogress::Float64 # 0.0 if in station 
+    speed::Float64 # speed of the train, how much of track length in one timeunit can be traversed
+    passengerlist::Array # passengerlist of the train
 
     # passenger specific variables
     groupsize::Int # size of the passenger group
-    targettime::Int # the time the passenger wants to reach its destination
-    arrivialtime::Int # on which Timeunit the passenger reached its destination
+    targettime::Int # the timeunit the passenger is willing to spend to reach its destination
+    arrivialtime::Int # on which timeunit the passenger reached its destination
 
     # round specific shared variables
     logbook::Array # holds output specific Strings to later save their actions as text output
@@ -25,18 +25,21 @@ mutable struct Mover <: AbstractAgent
     hasmoved::Bool # if the train allready moved this timeunit or if passenger has boarded
 end
 
-# Definition of functions to create specific agents (trains and passengers)
+# constructor functions to create specific agents (passengers and trains)
 Passenger(id, pos, destination, groupsize, targettime) = Mover(id, pos, destination, false, 0, 0.0, 0.0, [], groupsize, targettime, 0, [], false)
 Train(id, pos, capacity, speed) = Mover(id, pos, pos, true, capacity, 0.0, speed, [], 0, 0, 0, [], false)
 
 function initialize(file::String)
-    # preparing additional properties
+    initialize(file, false)
+end
+
+function initialize(file::String, debug::Bool)
     properties = Dict(
-        #:stations => Dataframe(),
-        #:lines => DataFrame()
+        :stations => DataFrame(),
+        :lines => DataFrame(),
+        :debug => true
         # Daten werden in buildGraphspaceABM eingelesen
     )
-    # parsing input textfile -> Graphspace with buildGraphspace()
     model = buildGraphspaceABM(Mover, properties, file)
     return model
 end
@@ -47,9 +50,11 @@ function step!(model, timeunits)
         for agent in allagents(model)
             agent_step!(agent, model)
         end
-        println()
-        println(string("End of Timeunit: ", timeunit))
-        println(string("modelagents: ",model.agents))
+        if model.debug
+            println()
+            println(string("End of Timeunit: ", timeunit))
+            println(string("modelagents: ",model.agents))
+        end
     end
 end
 
@@ -75,8 +80,10 @@ end
 function tryBoard!(passenger::Mover, model)::Bool # passenger macht liste von zeügen wählt random einen aus
     for nearbyagents in nearby_ids(passenger, model, 0) # iterate over agents at same position(r=0) excluding passenger
         agent = model[nearbyagents]
-        print(string("Passenger: ",passenger))
-        println(string(" found Agent at the platform: ",agent))
+        if model.debug
+            print(string("Passenger: ",passenger))
+            println(string(" found Agent at the platform: ",agent))
+        end
         if agent.isTrain && agent.capacity >= passenger.groupsize
             push!(agent.passengerlist, passenger.id) # train saves passenger on passengerlist
             agent.capacity = agent.capacity - passenger.groupsize # capacity of train agent is updated
@@ -165,36 +172,43 @@ function moveTrain!(train::Mover, model)
             train.trackprogress = model.lines[line[1, :ID], :Length]
             
             if train.speed >= train.trackprogress # if train is fast enough to reach the station in the same timeunit
-
-                println()
-                println("=================================[   ]=[   ]=[   ]=[   ]==")
-                println(string(string(string("train ",train.id), " reaches station: "), train.destination))
+                if model.debug
+                    println()
+                    println("=================================[   ]=[   ]=[   ]=[   ]==")
+                    println(string(string(string("train ",train.id), " reaches station: "), train.destination))
+                end
                 move_agent!(train, train.destination,  model) 
                 train.trackprogress = 0.0
                 train.hasmoved = true
-                println("============================")
             else
-                println()
-                println(string(string("train ", train.id)," moves a bit from: ", train.trackprogress))
+                if model.debug
+                    println()
+                    println(string(string("train ", train.id)," moves a bit from: ", train.trackprogress))
+                    println(string("to: ", train.trackprogress))
+                    println()
+                end
                 train.trackprogress += train.speed
-                println(train.trackprogress)
-                println()
+                
             end
         end
     else
         # println(model.lines[ in([train.pos]).(model.lines.Start), :])
         # line = model.lines[ in([train.pos]).(model.lines.Start), :][in([train.destination]).(model.lines.End), :] # get active line of the train
         # if train.trackprogress + train.speed >= model.lines[line[1, :ID], :Length] # if train is fast enough to reach the station in the same timeunit
+        # if model.debug
         #     println("==============================================[   ]=[   ]==")
         #     println(string(string(string("train ",train.id), " reaches station: "), train.destination))
+        # end
         #     move_agent!(train, train.destination,  model)
-        #     println("============================")
+        #     
         # else
-        #     println()
-        #     println(string(string("train ", train.id)," moves a bit from: ", train.trackprogress))
+            if model.debug
+                println()
+                println(string(string("train ", train.id)," moves a bit from: ", train.trackprogress))
+                println(string("to: ", train.trackprogress))
+                println()
+            end
         #     train.trackprogress += train.speed
-        #     println(string("to: ", train.trackprogress))
-        #     println()
         # end
     end
 end

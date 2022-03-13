@@ -9,7 +9,7 @@ include("..//TrainTimetableOptimization//trainTimetable_ABM.jl")
 function test1()
     println()
     println("=========================================")
-    m1 = initialize("InfomaticCup//test//simple//input.txt")
+    m1 = initialize("InfomaticCup//test//simple//input.txt", true)
     
     for agent in allagents(m1)
         println(nextDestination!(agent, m1))
@@ -19,7 +19,7 @@ end
 function test2()
     println()
     println("=========================================")
-    m1 = initialize("InfomaticCup//test//simple//input.txt")
+    m1 = initialize("InfomaticCup//test//simple//input.txt", true)
 
     println(m1.stations)
     println(m1.lines)

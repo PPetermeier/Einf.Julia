@@ -1,3 +1,4 @@
+# This is just the implementation of the Zombie outbreak Model out of the Agents.jl Doc to get a feeling for the Agents.jl pkg, not part of project #5
 using Agents
 
 @agent Zombie OSMAgent begin

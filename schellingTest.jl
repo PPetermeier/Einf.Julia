@@ -1,5 +1,4 @@
-# This is just the implementation of the Schelling Model out of the Agents.jl Doc to get a feeling for the Agents.jl pkg, 
-# also commenting in english cause its cool and to keep the file english :D
+# This is just the implementation of the Schelling Model out of the Agents.jl Doc to get a feeling for the Agents.jl pkg,  not part of project #5
 using Agents, InteractiveDynamics, CairoMakie
 
 #= # struct for the SchellingAgent, best practice is using the @agent makro like below which will do the same
