@@ -7,7 +7,7 @@ function parseinput(filepath)
     stations = DataFrame(ID = Int64[], Capacity = Int64[])
     lines = DataFrame(ID = Int64[], Start = Int64[], End = Int64[], Length = Float32[], Capacity = Int64[])
     trains = DataFrame(ID = Int64[], StartingStation = Any[], Speed = Float32[], Capacity = Int64[])
-    passengers = DataFrame(ID = Int64[], StartingStation = Int64[], Destination = Int64[], Groupsize = Int64[], Targettime = Int64[])
+    passengers = DataFrame(ID = Int64[], StartingStation = Int64[], Destination = Int64[], Targettime = Int64[], Groupsize = Int64[])
     #----------------- Die Schleife für custom parsing. Im Effekt auch ein selbst gebautes SwitchCase, mit continues für Effizienz.                     #
     #-----------------Phasenvariabel kontrolliert an welcher Stelle des Dokumentes gerade gelesen wird die entsprechenden Anweisungen werden ausgeführt.#
     open(filepath) do file 
