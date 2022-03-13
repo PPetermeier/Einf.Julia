@@ -11,7 +11,7 @@ function main()
     println("=========================================")
     m1 = initialize("InfomaticCup//test//simple//input.txt")
     println(m1.stations)
-    println(m1.tracks)
+    println(m1.lines)
     println(string("number of agents: ",nagents(m1)))
     println(m1.agents)
     println()
@@ -24,7 +24,6 @@ function main()
         println()
         println(string("End of Timeunit: ", timeunit))
         println(string("modelagents: ",m1.agents))
-        println(string("passengerlist: ",m1.passengers))
     end
 end
 

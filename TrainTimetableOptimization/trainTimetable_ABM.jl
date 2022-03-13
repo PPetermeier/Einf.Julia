@@ -11,15 +11,20 @@ mutable struct Mover <: AbstractAgent
     speed::Float64 # speed of the train, how many track length in one time unit can be traversed
     onBoard::Int # train id if the passenger boarded one
     groupsize::Int # size of the passenger group
-    targettime::Float64 # the time the passenger wants to reach its destination
+    targettime::Int # the time the passenger wants to reach its destination
 end
 
-mutable struct Track
-    trackstart::Int # start station/node
-    trackend::Int # end station/node
-    capacity::Int # max number of trains
-    length::Float64
-end
+# mutable struct Station
+#     capacity::Int # max number of trains
+#     tracks::Dict{Int, Track} # Tracks starting in theis station per endstationId
+# end
+
+# mutable struct Track
+#     trackstart::Int # start station/node
+#     trackend::Int # end station/node
+#     capacity::Int # max number of trains
+#     length::Float64
+# end
 
 # TODO implement struct Station and MetaGraphs as alternative to LightGraphs so we can use edge properties for length or for stations(nodes) capacity
 
@@ -30,10 +35,9 @@ Train(id, pos, destination, capacity, speed) = Mover(id, pos, destination, true,
 function initialize(file::String)
     # preparing additional properties
     properties = Dict(
-        :stations => Dict{Integer, Integer}(), # Stationid::Int => track::Station
-        :tracks => Dict{Integer, Track}(), # Trackid::String => track::Track 
-        :passengers => Dict{Integer, Vector{Int}}(), # TrainID::Int PassngerID::Int Array of PassengerIDs per train
-        :lines => DataFrame()
+        #:stations => Dataframe(), # Stationid::Int => station::Station
+        #:passengers => Dict{Integer, Vector{Int}}(), # TrainID::Int PassngerID::Int Array of PassengerIDs per train
+        #:lines => DataFrame()
         # Daten werden in buildGraphspaceABM eingelesen
     )
     # parsing input textfile -> Graphspace with buildGraphspace()
@@ -44,10 +48,12 @@ end
 function agent_step!(agent::Mover, model)
     # Moving each Agent One Step per One Time unit
     # Phase 1: Passengers try to board trains to their destination when train is in there station which has space for their group
-    if ! agent.isTrain && agent.onBoard < 1
-        tryBoard(agent, model)
-    else
+    if agent.isTrain
         moveTrain(agent, model)
+    else
+        if agent.onBoard < 1
+            tryBoard(agent, model)
+        end
     end
     # Phase 2: Trains travel their speed on their optimized train track route check if track has capacity for them and go on
 end
@@ -58,18 +64,17 @@ function tryBoard(passenger::Mover, model)::Bool # passenger macht liste von zeÃ
         print(string("Passenger: ",passenger))
         println(string(" found Agent at the platform: ",agent))
         if agent.isTrain && agent.capacity >= passenger.groupsize
-            if haskey(model.passengers, agent.id) # look if there is allready a passenger list for the train and if not make one
-                push!(model.passengers[agent.id], passenger.id) # passenger added to the central passenger list of all trains in the model
-            else
-                println(string("creating passengerlist for train: ", agent.id))
-                model.passengers[agent.id] = [passenger.id]
-            end
             passenger.onBoard = agent.id # passenger saves on which train it is
             agent.capacity = agent.capacity - passenger.groupsize # capacity of train agent is updated
             return true
         end
     end 
     return false
+end
+
+function nextDestination(agent::Mover, model)
+    #println(first(model.lines[in.(model.lines.Start, Ref(agent.pos)), :].End))
+    #agent.destination = first(nearby_positions(agent.pos, model, 1)) # placeholder TODO better way picking next stop based on lines
 end
 
 function moveTrain(train::Mover, model)
@@ -81,8 +86,11 @@ function moveTrain(train::Mover, model)
                 break
             end
         end
-        if stationempty && in(train.destination, nearby_positions(train.pos, model, 1)) # if all passenger boarded and the next stop is reachable
-            #if model.trac
+        if stationempty
+            nextDestination(train, model)
+            if in(train.destination, nearby_positions(train.pos, model, 1)) # if all passenger boarded and the next stop is reachable
+                #move_agent!(train, train.destination,  model)# ToDo check if track or station have the capacity
+            end
         end
     end
 end

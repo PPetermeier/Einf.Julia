@@ -1,6 +1,6 @@
 # Benötigt Julia 1.7!
-using DataFrames
-function parseinput()
+# using DataFrames
+function parseinput(filepath)
     #----------------- Die Dataframes initialisieren um dann einfach reinschreiben zu können.       #
     #----------------- Besonderheit bei Trains: Startation muss Any und genutzte Methode tryparse,  #
     #----------------- damit NaN eingetragen werden kann für die frei setzbaren Züge                #
@@ -10,7 +10,7 @@ function parseinput()
     passengers = DataFrame(ID = Int64[], StartingStation = Int64[], Destination = Int64[], Groupsize = Int64[], Targettime = Int64[])
     #----------------- Die Schleife für custom parsing. Im Effekt auch ein selbst gebautes SwitchCase, mit continues für Effizienz.                     #
     #-----------------Phasenvariabel kontrolliert an welcher Stelle des Dokumentes gerade gelesen wird die entsprechenden Anweisungen werden ausgeführt.#
-    open("C:\\Users\\Philipp\\Desktop\\Einf.Julia\\InfomaticCup\\test\\simple\\input.txt") do file 
+    open(filepath) do file 
         phase=0
         for ln in eachline(file)
             if length(ln) == 0 || startswith(ln, "#")
@@ -41,4 +41,4 @@ function parseinput()
     return(stations, lines, trains, passengers)
 end
 #------------------Funktionscall für die main(), um die Dataframes eingelesen zu erhalten: #
-#stations, lines, trains, passengers = parseinput()
+#stations, lines, trains, passengers = parseinput(filepath)
