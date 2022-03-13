@@ -68,31 +68,26 @@ function tryBoard!(passenger::Mover, model)::Bool # passenger macht liste von ze
     return false
 end
 
-function nextDestination!(train::Mover, model) #TODO
-    #println(first(model.lines[in.(model.lines.Start, Ref(agent.pos)), :].End))
-    #model.lines[rand(1:end)]
-    #agent.destination = first(nearby_positions(agent.pos, model, 1)) # placeholder TODO better way picking next stop based on lines
+function nextDestination!(train::Mover, model)
     neighborlist = DataFrame(Route = Any, weigth = Int)
-    println(neighborlist)
-    println(train)
-    println(nearby_positions(train.pos, model, 1))
-    for agent in nearby_agents(train.pos, model, 0)
+    for agent in nearby_agents(train.pos, model, 0) # Placeholderfunktion, die Passenger sollten sich selbst bereits beim Boarden eingecheckt haben
         if !agent.isTrain
             push!(train.passengerlist, agent)  
         end
     end
     for passenger in train.passengerlist
         preference = a_star(model.space.graph, passenger.pos, passenger.destination )
+        println(preference[1])
+        preference = preference[1].dst
         println(preference)
-        if preference in(neighborlist[1])
+        if preference in(neighborlist[!, 1])
             neighborlist[2] += passenger.Groupsize
         else 
-            push!(neighborlist, (preference, passenger.Groupsize)       
+            push!(neighborlist, (preference, passenger.groupsize))       
         end
     sort!(neighborlist, 2, rev=true)
     nextdestinationID = neighborlist[1, 1]
     return nextdestinationID
-        #push!(preferredline, passenger.destination) # first(dijstra(model, passenger.pos, passenger.destination)
     end
     #if contains(targelist, preferredline)
     #    targetlist.lineweigth+= passenger.groupsize
