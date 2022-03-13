@@ -20,7 +20,7 @@ mutable struct Mover <: AbstractAgent
     arrivialtime::Int # on which Timeunit the passenger reached its destination
 
     # round specific shared variables
-    logbook::Vector{String} # holds output specific Strings to later save their actions as text output
+    logbook::Array # holds output specific Strings to later save their actions as text output
     # logbook format for trains string(zeit:int start/depart stationid/lineid) format for passenger string(zeit:int board/detrain zug/" ")
     hasmoved::Bool # if the train allready moved this timeunit or if passenger has boarded
 end
@@ -41,10 +41,28 @@ function initialize(file::String)
     return model
 end
 
+function step!(model, timeunits)
+    reset_agents!(model)
+    for timeunit in 1:timeunits
+        for agent in allagents(model)
+            agent_step!(agent, model)
+        end
+        println()
+        println(string("End of Timeunit: ", timeunit))
+        println(string("modelagents: ",model.agents))
+    end
+end
+
+function reset_agents!(model)
+    for agent in allagents(model) 
+        agent.hasmoved = false
+    end
+end
+
 function agent_step!(agent::Mover, model)
     # Moving each Agent One Step per One Time unit
     # Phase 1: Passengers try to board trains to their destination when train is in there station which has space for their group
-    if agent.isTrain
+    if agent.isTrain && ! agent.hasmoved
         moveTrain!(agent, model)
     else
         if ! agent.hasmoved
@@ -144,11 +162,16 @@ function moveTrain!(train::Mover, model)
         train.destination = 3
         if in(train.destination, nearby_positions(train.pos, model, 1)) && enter!(train, model, :line) # if the next stop is reachable and line has capacity
             line = model.lines[ in([train.pos]).(model.lines.Start), :][in([train.destination]).(model.lines.End), :] # get active line of the train
-            if train.speed >= model.lines[line[1, :ID], :Length] # if train is fast enough to reach the station in the same timeunit
+            train.trackprogress = model.lines[line[1, :ID], :Length]
+            
+            if train.speed >= train.trackprogress # if train is fast enough to reach the station in the same timeunit
+
                 println()
                 println("=================================[   ]=[   ]=[   ]=[   ]==")
                 println(string(string(string("train ",train.id), " reaches station: "), train.destination))
-                move_agent!(train, train.destination,  model)
+                move_agent!(train, train.destination,  model) 
+                train.trackprogress = 0.0
+                train.hasmoved = true
                 println("============================")
             else
                 println()
@@ -159,6 +182,7 @@ function moveTrain!(train::Mover, model)
             end
         end
     else
+        # println(model.lines[ in([train.pos]).(model.lines.Start), :])
         # line = model.lines[ in([train.pos]).(model.lines.Start), :][in([train.destination]).(model.lines.End), :] # get active line of the train
         # if train.trackprogress + train.speed >= model.lines[line[1, :ID], :Length] # if train is fast enough to reach the station in the same timeunit
         #     println("==============================================[   ]=[   ]==")
